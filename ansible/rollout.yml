@@ -1,0 +1,31 @@
+---
+- name: Rolling update
+  hosts: llama
+  become: true
+  serial: 1
+  tasks:
+    - name: 1. Drain this node
+      ansible.builtin.shell: echo "set server llama/{{ inventory_hostname }} state drain" | socat stdio /run/haproxy/admin.sock
+      delegate_to: node-a
+
+    - name: 2. Copy the new files to this node
+      ansible.builtin.include_role:
+        name: llama_server
+
+    - name: 3. Restart llama-server on this node
+      ansible.builtin.systemd_service:
+        name: llama-server
+        state: restarted
+        daemon_reload: true
+
+    - name: 4. Wait until this node is healthy
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8080/health
+      register: health
+      until: health.status == 200
+      retries: 30
+      delay: 2
+
+    - name: 5. Put this node back
+      ansible.builtin.shell: echo "set server llama/{{ inventory_hostname }} state ready" | socat stdio /run/haproxy/admin.sock
+      delegate_to: node-a

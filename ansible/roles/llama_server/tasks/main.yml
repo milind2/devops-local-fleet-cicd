@@ -28,7 +28,7 @@
     src: "/opt/llama/releases/{{ llama_version }}"
     dest: /opt/llama/current
     state: link
-
+  notify: Restart llama-server 
 - name: Install the systemd unit
   ansible.builtin.template:
     src: llama-server.service.j2
