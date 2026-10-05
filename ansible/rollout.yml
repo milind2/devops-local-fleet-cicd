@@ -1,31 +1,76 @@
----
-- name: Rolling update
-  hosts: llama
-  become: true
-  serial: 1
-  tasks:
-    - name: 1. Drain this node
+---                                                   # start of YAML file
+- name: Rolling update with automatic rollback        # name of this play
+  hosts: llama                                        # node-a and node-b
+  become: true                                        # run as root
+  serial: 1                                           # node-a fully, then node-b fully
+  tasks:                                              # the steps
+    - name: 0. Remember which version is running now  # BEFORE changing anything...
+      ansible.builtin.stat:                           # ...look at the link
+        path: /opt/llama/current                      # the link that says which version runs
+      register: before                                # save: before.stat.lnk_source = /opt/llama/releases/b11154
+
+    - name: 1. Drain this node                        # HAProxy: no new users to this node
       ansible.builtin.shell: echo "set server llama/{{ inventory_hostname }} state drain" | socat stdio /run/haproxy/admin.sock
-      delegate_to: node-a
+      delegate_to: node-a                             # run on node-a, where HAProxy is
 
-    - name: 2. Copy the new files to this node
-      ansible.builtin.include_role:
-        name: llama_server
+    - name: Update this node, roll back if anything fails
+      block:                                          # TRY steps 2-4b
+        - name: 2. Copy the new files to this node    # role: copy binary to releases/<version>, move current link
+          ansible.builtin.include_role:
+            name: llama_server
 
-    - name: 3. Restart llama-server on this node
-      ansible.builtin.systemd_service:
-        name: llama-server
-        state: restarted
-        daemon_reload: true
+        - name: 3. Restart llama-server on this node  # start the new version
+          ansible.builtin.systemd_service:
+            name: llama-server
+            state: restarted
+            daemon_reload: true
 
-    - name: 4. Wait until this node is healthy
-      ansible.builtin.uri:
-        url: http://127.0.0.1:8080/health
-      register: health
-      until: health.status == 200
-      retries: 30
-      delay: 2
+        - name: 4. Wait until this node is healthy    # /health until 200
+          ansible.builtin.uri:
+            url: http://127.0.0.1:8080/health
+          register: health                            # save the answer
+          until: health.status == 200                 # repeat until 200
+          retries: 30                                 # at most 30 times
+          delay: 2                                    # 2 s apart -> fails after 60 s
 
-    - name: 5. Put this node back
-      ansible.builtin.shell: echo "set server llama/{{ inventory_hostname }} state ready" | socat stdio /run/haproxy/admin.sock
-      delegate_to: node-a
+        - name: 4b. Real chat request on this node    # does the model really answer?
+          ansible.builtin.uri:
+            url: http://127.0.0.1:8080/v1/chat/completions
+            method: POST
+            body_format: json
+            body:
+              messages:
+                - role: user
+                  content: "Say ok"
+              max_tokens: 5
+          register: chat                              # save the answer
+          failed_when: chat.status != 200 or chat.json.choices[0].message.content | length == 0   # fail if no proper answer
+
+      rescue:                                         # ONLY if a step in block failed: ROLLBACK
+        - name: R1. Point current back to the old version
+          ansible.builtin.file:
+            src: "{{ before.stat.lnk_source }}"       # the old folder saved in step 0
+            dest: /opt/llama/current                  # the link
+            state: link                               # current -> old version again
+
+        - name: R2. Restart llama-server on the old version
+          ansible.builtin.systemd_service:
+            name: llama-server
+            state: restarted                          # the old binary runs again
+
+        - name: R3. Wait until the old version is healthy
+          ansible.builtin.uri:
+            url: http://127.0.0.1:8080/health
+          register: health_old
+          until: health_old.status == 200
+          retries: 30
+          delay: 2
+
+        - name: R4. Stop the rollout                  # mark this node failed -> node-b is not started
+          ansible.builtin.fail:
+            msg: "New version failed on {{ inventory_hostname }}. Rolled back to {{ before.stat.lnk_source | basename }}."
+
+      always:                                         # IN EVERY CASE (worked or rolled back)
+        - name: 5. Put this node back                 # HAProxy: send users to this node again
+          ansible.builtin.shell: echo "set server llama/{{ inventory_hostname }} state ready" | socat stdio /run/haproxy/admin.sock
+          delegate_to: node-a
