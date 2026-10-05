@@ -1,0 +1,6 @@
+---
+- name: Base setup on every node
+  hosts: llama
+  become: true
+  roles:
+    - common
