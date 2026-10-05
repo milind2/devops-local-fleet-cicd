@@ -18,3 +18,33 @@
     name: prometheus
     state: started
     enabled: true
+
+- name: Add Grafana's signing key
+  ansible.builtin.get_url:
+    url: https://apt.grafana.com/gpg.key
+    dest: /etc/apt/keyrings/grafana.asc
+    mode: "0644"
+
+- name: Add Grafana's apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main"
+    filename: grafana
+
+- name: Install Grafana
+  ansible.builtin.apt:
+    name: grafana
+    state: present
+    lock_timeout: 600
+
+- name: Tell Grafana where Prometheus is
+  ansible.builtin.copy:
+    src: grafana-datasource.yml
+    dest: /etc/grafana/provisioning/datasources/prometheus.yml
+    mode: "0644"
+  notify: Restart grafana
+
+- name: Start Grafana and enable at boot
+  ansible.builtin.systemd_service:
+    name: grafana-server
+    state: started
+    enabled: true
