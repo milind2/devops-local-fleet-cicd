@@ -21,3 +21,11 @@ status:
 
 destroy:
 > cd terraform && terraform destroy -auto-approve
+
+.PHONY: verify act-rollout
+
+verify:
+> curl -sf http://$$(cd terraform && terraform output -json ips | jq -r '.["node-a"]'):8000/v1/chat/completions -H "Content-Type: application/json" -d '{"messages":[{"role":"user","content":"Say ok"}],"max_tokens":5}' | jq -r '.choices[0].message.content'
+
+act-rollout:
+> act workflow_dispatch -W .github/workflows/deploy.yml -P self-hosted=-self-hosted -b

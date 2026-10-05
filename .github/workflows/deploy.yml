@@ -1,0 +1,14 @@
+name: deploy
+on: workflow_dispatch
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Create or update VMs (Terraform)
+        run: make -C /home/ubuntu/fleet apply
+      - name: Configure nodes (Ansible)
+        run: make -C /home/ubuntu/fleet configure
+      - name: Rolling update
+        run: make -C /home/ubuntu/fleet rollout
+      - name: Verify with a real chat request
+        run: make -C /home/ubuntu/fleet verify
