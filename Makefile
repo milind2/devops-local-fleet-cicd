@@ -29,3 +29,14 @@ verify:
 
 act-rollout:
 > act workflow_dispatch -W .github/workflows/deploy.yml -P self-hosted=-self-hosted -b
+
+.PHONY: setup plan act-plan
+
+setup: key
+> cd terraform && terraform init -input=false
+
+plan: cloud-init
+> cd terraform && terraform plan -input=false
+
+act-plan:
+> act workflow_dispatch -W .github/workflows/plan.yml -P self-hosted=-self-hosted
