@@ -1,7 +1,9 @@
 ---
-- name: Install HAProxy
+- name: Install HAProxy and socat
   ansible.builtin.apt:
-    name: haproxy
+    name:
+      - haproxy
+      - socat
     state: present
     lock_timeout: 600
 
