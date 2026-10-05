@@ -1,0 +1,44 @@
+---
+- name: Copy the model
+  ansible.builtin.copy:
+    src: "{{ build_model }}"
+    dest: "/opt/llama/models/{{ model_file }}"
+    owner: root
+    group: llama
+    mode: "0644"
+
+- name: Create the release folder
+  ansible.builtin.file:
+    path: "/opt/llama/releases/{{ llama_version }}"
+    state: directory
+    owner: root
+    group: llama
+    mode: "0755"
+
+- name: Copy the llama-server binary into the release folder
+  ansible.builtin.copy:
+    src: "{{ build_binary }}"
+    dest: "/opt/llama/releases/{{ llama_version }}/llama-server"
+    owner: root
+    group: llama
+    mode: "0755"
+
+- name: Point current at this release
+  ansible.builtin.file:
+    src: "/opt/llama/releases/{{ llama_version }}"
+    dest: /opt/llama/current
+    state: link
+
+- name: Install the systemd unit
+  ansible.builtin.template:
+    src: llama-server.service.j2
+    dest: /etc/systemd/system/llama-server.service
+    mode: "0644"
+  notify: Restart llama-server
+
+- name: Start llama-server and enable it at boot
+  ansible.builtin.systemd_service:
+    name: llama-server
+    state: started
+    enabled: true
+    daemon_reload: true

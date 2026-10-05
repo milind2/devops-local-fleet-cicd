@@ -1,0 +1,14 @@
+[Unit]
+Description=llama.cpp inference server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=llama
+Group=llama
+ExecStart=/opt/llama/current/llama-server --model /opt/llama/models/{{ model_file }} --host 127.0.0.1 --port {{ llama_port }} --ctx-size 2048 --metrics
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,8 @@
+---
+llama_version: b11154
+llama_port: 8081
+model_file: qwen2.5-0.5b-instruct-q4_k_m.gguf
+
+# Where the build and model are on the host
+build_binary: /home/ubuntu/work/llama.cpp/build/bin/llama-server
+build_model: /home/ubuntu/work/models/qwen2.5-0.5b-instruct-q4_k_m.gguf

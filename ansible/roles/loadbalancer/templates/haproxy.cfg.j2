@@ -1,0 +1,22 @@
+global
+    log /dev/log local0
+    stats socket /run/haproxy/admin.sock mode 660 level admin
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    timeout connect 5s
+    timeout client  300s
+    timeout server  300s
+
+frontend fleet
+    bind 0.0.0.0:8000
+    default_backend llama
+
+backend llama
+    balance leastconn
+    option httpchk GET /health
+    http-check expect status 200
+    server node-a {{ hostvars['node-a']['ansible_host'] }}:8080 check inter 2s fall 2 rise 2
+    server node-b {{ hostvars['node-b']['ansible_host'] }}:8080 check inter 2s fall 2 rise 2

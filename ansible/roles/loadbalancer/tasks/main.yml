@@ -1,0 +1,20 @@
+---
+- name: Install HAProxy
+  ansible.builtin.apt:
+    name: haproxy
+    state: present
+    lock_timeout: 600
+
+- name: Put our config on the VM
+  ansible.builtin.template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    mode: "0644"
+    validate: haproxy -c -f %s
+  notify: Reload haproxy
+
+- name: Start HAProxy and enable at boot
+  ansible.builtin.systemd_service:
+    name: haproxy
+    state: started
+    enabled: true

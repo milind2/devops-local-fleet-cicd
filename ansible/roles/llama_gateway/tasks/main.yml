@@ -1,0 +1,23 @@
+---
+- name: Copy the gateway code                 # host -> VM
+  ansible.builtin.copy:
+    src: gateway.py
+    dest: /opt/llama/gateway.py
+    owner: root
+    group: llama
+    mode: "0755"
+  notify: Restart llama-gateway               # new code -> restart
+
+- name: Copy the gateway unit file            # host -> VM
+  ansible.builtin.copy:
+    src: llama-gateway.service
+    dest: /etc/systemd/system/llama-gateway.service
+    mode: "0644"
+  notify: Restart llama-gateway               # new unit -> restart
+
+- name: Start the gateway and enable at boot
+  ansible.builtin.systemd_service:
+    name: llama-gateway
+    state: started
+    enabled: true
+    daemon_reload: true
