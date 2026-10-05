@@ -1,0 +1,20 @@
+---
+- name: Install Prometheus
+  ansible.builtin.apt:
+    name: prometheus
+    state: present
+    lock_timeout: 600
+
+- name: Put our Prometheus config on the VM
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    mode: "0644"
+    validate: promtool check config %s
+  notify: Restart prometheus
+
+- name: Start Prometheus and enable at boot
+  ansible.builtin.systemd_service:
+    name: prometheus
+    state: started
+    enabled: true

@@ -12,3 +12,9 @@
   become: true
   roles:
     - loadbalancer
+
+- name: Monitoring
+  hosts: monitoring
+  become: true
+  roles:
+    - monitoring

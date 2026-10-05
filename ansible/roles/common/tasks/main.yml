@@ -33,3 +33,9 @@
     - /opt/llama
     - /opt/llama/releases
     - /opt/llama/models
+
+- name: Install node exporter (CPU, memory, disk metrics on port 9100)
+  ansible.builtin.apt:
+    name: prometheus-node-exporter
+    state: present
+    lock_timeout: 600

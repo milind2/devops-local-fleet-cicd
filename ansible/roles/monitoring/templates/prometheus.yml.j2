@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: llama
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "{{ hostvars['node-a']['ansible_host'] }}:8080"
+          - "{{ hostvars['node-b']['ansible_host'] }}:8080"
+
+  - job_name: node
+    static_configs:
+      - targets:
+          - "{{ hostvars['node-a']['ansible_host'] }}:9100"
+          - "{{ hostvars['node-b']['ansible_host'] }}:9100"
