@@ -1,7 +1,7 @@
 #!/bin/bash
 # Runs right after llama-server starts (ExecStartPost): time from start to first /health 200.
 start=$(date +%s.%N)                                  # stopwatch start
-for i in $(seq 300); do                               # at most 300 × 0.2 s = 60 s
+for _ in $(seq 300); do                               # at most 300 × 0.2 s = 60 s
   curl -sf http://127.0.0.1:8081/health > /dev/null && break   # 200 → model loaded → leave the loop
   sleep 0.2
 done

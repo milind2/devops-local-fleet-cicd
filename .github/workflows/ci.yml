@@ -1,0 +1,9 @@
+---
+name: ci
+on: workflow_dispatch              # started by hand (act workflow_dispatch)
+jobs:
+  lint:
+    runs-on: self-hosted           # act runs it on this host, where the linters are installed
+    steps:
+      - name: All linters (fmt, validate, tflint, shellcheck, yamllint, ansible-lint, actionlint)
+        run: make -C /home/ubuntu/fleet lint

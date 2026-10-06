@@ -40,3 +40,15 @@ plan: cloud-init
 
 act-plan:
 > act workflow_dispatch -W .github/workflows/plan.yml -P self-hosted=-self-hosted
+
+lint:
+> cd terraform && terraform fmt -check -recursive
+> cd terraform && terraform validate
+> cd terraform && tflint
+> shellcheck ansible/roles/llama_server/files/measure-load.sh
+> yamllint .
+> cd ansible && ansible-lint
+> actionlint
+
+act-ci:
+> act workflow_dispatch -W .github/workflows/ci.yml -P self-hosted=-self-hosted

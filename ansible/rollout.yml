@@ -9,7 +9,7 @@
         path: /opt/llama/current                      # the link that says which version runs
       register: before                                # save: before.stat.lnk_source = /opt/llama/releases/b11154
 
-    - name: 1. Drain this node                        # HAProxy: no new users to this node
+    - name: 1. Drain this node                        # HAProxy: no new users to this node  # noqa: no-changed-when risky-shell-pipe
       ansible.builtin.shell: echo "set server llama/{{ inventory_hostname }} state drain" | socat stdio /run/haproxy/admin.sock
       delegate_to: node-a                             # run on node-a, where HAProxy is
 
@@ -71,6 +71,6 @@
             msg: "New version failed on {{ inventory_hostname }}. Rolled back to {{ before.stat.lnk_source | basename }}."
 
       always:                                         # IN EVERY CASE (worked or rolled back)
-        - name: 5. Put this node back                 # HAProxy: send users to this node again
+        - name: 5. Put this node back                 # HAProxy: send users to this node again  # noqa: no-changed-when risky-shell-pipe
           ansible.builtin.shell: echo "set server llama/{{ inventory_hostname }} state ready" | socat stdio /run/haproxy/admin.sock
           delegate_to: node-a

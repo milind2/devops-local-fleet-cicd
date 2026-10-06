@@ -1,0 +1,10 @@
+---
+extends: default             # start from yamllint's standard rules
+rules:
+  line-length:
+    max: 160                 # allow our commented lines
+  truthy:
+    check-keys: false        # don't flag GitHub's "on:" key
+ignore: |
+  terraform/cloud-init.yaml
+  terraform/.terraform/
