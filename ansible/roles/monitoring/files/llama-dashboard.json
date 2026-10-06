@@ -1,0 +1,101 @@
+{
+  "title": "Llama Fleet",
+  "uid": "llama-fleet",
+  "refresh": "15s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "title": "Latency p50 / p95 (s)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "p50",
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(llama_gateway_request_seconds_bucket[5m])))"
+        },
+        {
+          "refId": "B",
+          "legendFormat": "p95",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(llama_gateway_request_seconds_bucket[5m])))"
+        }
+      ]
+    },
+    {
+      "title": "Tokens / sec",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "{{instance}}",
+          "expr": "llamacpp:predicted_tokens_seconds"
+        }
+      ]
+    },
+    {
+      "title": "Requests / sec by status",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "{{status}}",
+          "expr": "sum by (status) (rate(llama_gateway_requests_total[5m]))"
+        }
+      ]
+    },
+    {
+      "title": "Errors / sec (status >= 500)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "errors",
+          "expr": "sum(rate(llama_gateway_requests_total{status=~\"5..\"}[5m])) or vector(0)"
+        }
+      ]
+    },
+    {
+      "title": "Model load time (s)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "{{instance}}",
+          "expr": "llama_model_load_seconds"
+        }
+      ]
+    }
+  ]
+}

@@ -42,3 +42,11 @@
     state: started
     enabled: true
     daemon_reload: true
+
+- name: Copy the load-time script
+  ansible.builtin.copy:
+    src: measure-load.sh            # looks in roles/llama_server/files/
+    dest: /opt/llama/measure-load.sh
+    owner: root
+    group: root
+    mode: "0755"                    # executable

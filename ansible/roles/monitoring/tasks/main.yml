@@ -48,3 +48,26 @@
     name: grafana-server
     state: started
     enabled: true
+
+- name: Folder for dashboard files
+  ansible.builtin.file:
+    path: /var/lib/grafana/dashboards
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: "0755"
+
+- name: Tell Grafana to load dashboards from that folder
+  ansible.builtin.copy:
+    src: grafana-dashboards.yml
+    dest: /etc/grafana/provisioning/dashboards/llama.yml
+    mode: "0644"
+  notify: Restart grafana
+
+- name: Copy our dashboard
+  ansible.builtin.copy:
+    src: llama-dashboard.json
+    dest: /var/lib/grafana/dashboards/llama-dashboard.json
+    owner: grafana
+    group: grafana
+    mode: "0644"

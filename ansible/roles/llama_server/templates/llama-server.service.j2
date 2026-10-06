@@ -7,6 +7,7 @@ Wants=network-online.target
 User=llama
 Group=llama
 ExecStart=/opt/llama/current/llama-server --model /opt/llama/models/{{ model_file }} --host 127.0.0.1 --port {{ llama_port }} --ctx-size 4096 --metrics
+ExecStartPost=-+/opt/llama/measure-load.sh
 Restart=on-failure
 RestartSec=3
 
