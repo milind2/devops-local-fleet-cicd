@@ -52,3 +52,6 @@ lint:
 
 act-ci:
 > act workflow_dispatch -W .github/workflows/ci.yml -P self-hosted=-self-hosted
+
+test-tf:
+> cd terraform && terraform test
