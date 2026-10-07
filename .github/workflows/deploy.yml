@@ -5,6 +5,8 @@ jobs:
   deploy:
     runs-on: self-hosted
     steps:
+      - name: Build llama.cpp + fetch model (cached per version)
+        run: make -C /home/ubuntu/fleet build
       - name: Create or update VMs (Terraform)
         run: make -C /home/ubuntu/fleet apply
       - name: Configure nodes (Ansible)

@@ -45,7 +45,7 @@ lint:
 > cd terraform && terraform fmt -check -recursive
 > cd terraform && terraform validate
 > cd terraform && tflint
-> shellcheck ansible/roles/llama_server/files/measure-load.sh
+> shellcheck ansible/roles/llama_server/files/measure-load.sh scripts/*.sh
 > yamllint .
 > cd ansible && ansible-lint
 > actionlint
@@ -61,3 +61,17 @@ test-molecule:
 
 check-state:
 > ./scripts/check-state.sh
+
+LLAMA_VERSION := $(shell awk '/^llama_version:/ {gsub(/"/,"",$$2); print $$2}' ansible/group_vars/all.yml)
+
+build: model
+> sudo apt-get install -y -qq build-essential cmake git
+> ./scripts/build-llama.sh $(LLAMA_VERSION)
+
+MODEL_FILE := qwen2.5-0.5b-instruct-q4_k_m.gguf
+MODEL_URL  := https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/$(MODEL_FILE)
+
+model:
+> mkdir -p ~/work/models
+> test -f ~/work/models/$(MODEL_FILE) || (wget -q -O ~/work/models/$(MODEL_FILE).tmp $(MODEL_URL) && mv ~/work/models/$(MODEL_FILE).tmp ~/work/models/$(MODEL_FILE))
+> ls -lh ~/work/models/$(MODEL_FILE)
