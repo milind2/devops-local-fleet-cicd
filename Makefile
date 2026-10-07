@@ -30,9 +30,9 @@ verify:
 act-rollout:
 > act workflow_dispatch -W .github/workflows/deploy.yml -P self-hosted=-self-hosted -b
 
-.PHONY: setup plan act-plan
+.PHONY: setup plan act-plan lint act-ci test-tf test-molecule check-state build model secrets
 
-setup: key
+setup: key secrets
 > cd terraform && terraform init -input=false
 
 plan: cloud-init check-state
@@ -75,3 +75,7 @@ model:
 > mkdir -p ~/work/models
 > test -f ~/work/models/$(MODEL_FILE) || (wget -q -O ~/work/models/$(MODEL_FILE).tmp $(MODEL_URL) && mv ~/work/models/$(MODEL_FILE).tmp ~/work/models/$(MODEL_FILE))
 > ls -lh ~/work/models/$(MODEL_FILE)
+
+secrets:
+> mkdir -p ~/.config/fleet && chmod 700 ~/.config/fleet
+> test -f ~/.config/fleet/grafana_admin_password || (umask 077 && openssl rand -base64 18 > ~/.config/fleet/grafana_admin_password)
