@@ -55,3 +55,6 @@ act-ci:
 
 test-tf:
 > cd terraform && terraform test
+
+test-molecule:
+> cd ansible/roles/common && molecule test

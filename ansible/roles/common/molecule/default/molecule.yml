@@ -1,0 +1,12 @@
+---
+driver:
+  name: podman
+platforms:
+  - name: instance
+    image: docker.io/geerlingguy/docker-ubuntu2404-ansible:latest
+    pre_build_image: true
+    command: sleep infinity
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_ROLES_PATH: /home/ubuntu/fleet/ansible/roles

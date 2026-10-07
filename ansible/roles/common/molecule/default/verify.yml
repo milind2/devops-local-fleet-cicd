@@ -1,0 +1,30 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    - name: The llama user exists
+      ansible.builtin.getent:
+        database: passwd
+        key: llama
+
+    - name: Read the folders
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop: [/opt/llama, /opt/llama/releases, /opt/llama/models]
+      register: dirs
+
+    - name: All folders exist
+      ansible.builtin.assert:
+        that: item.stat.isdir is defined and item.stat.isdir
+        fail_msg: "{{ item.item }} is missing"
+      loop: "{{ dirs.results }}"
+
+    - name: Read installed packages
+      ansible.builtin.package_facts:
+
+    - name: Required packages are installed
+      ansible.builtin.assert:
+        that: item in ansible_facts.packages
+        fail_msg: "{{ item }} is not installed"
+      loop: [libgomp1, curl, prometheus-node-exporter]
