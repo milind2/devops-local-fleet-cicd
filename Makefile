@@ -7,7 +7,7 @@ key:
 cloud-init: key
 > printf '#cloud-config\nssh_authorized_keys:\n  - %s\n' "$$(cat ~/.ssh/fleet_key.pub)" > terraform/cloud-init.yaml
 
-apply: cloud-init
+apply: cloud-init check-state
 > cd terraform && terraform init -input=false && terraform apply -auto-approve
 
 configure:
@@ -35,7 +35,7 @@ act-rollout:
 setup: key
 > cd terraform && terraform init -input=false
 
-plan: cloud-init
+plan: cloud-init check-state
 > cd terraform && terraform plan -input=false
 
 act-plan:
@@ -58,3 +58,6 @@ test-tf:
 
 test-molecule:
 > cd ansible/roles/common && molecule test
+
+check-state:
+> ./scripts/check-state.sh
