@@ -7,3 +7,4 @@ ansible/inventory.ini
 # Big files never go in git
 *.gguf
 *.tar.gz
+logs/

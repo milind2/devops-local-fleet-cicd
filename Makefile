@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+.SHELLFLAGS := -o pipefail -c
 .RECIPEPREFIX = >
 .PHONY: key cloud-init apply configure rollout status destroy
 
@@ -28,7 +30,8 @@ verify:
 > curl -sf http://$$(cd terraform && terraform output -json ips | jq -r '.["node-a"]'):8000/v1/chat/completions -H "Content-Type: application/json" -d '{"messages":[{"role":"user","content":"Say ok"}],"max_tokens":5}' | jq -r '.choices[0].message.content'
 
 act-rollout:
-> act workflow_dispatch -W .github/workflows/deploy.yml -P self-hosted=-self-hosted -b
+> mkdir -p logs
+> act workflow_dispatch -W .github/workflows/deploy.yml -P self-hosted=-self-hosted -b 2>&1 | tee logs/act-rollout-$$(date +%Y%m%d-%H%M%S).log
 
 .PHONY: setup plan act-plan lint act-ci test-tf test-molecule check-state build model secrets
 
@@ -39,7 +42,8 @@ plan: cloud-init check-state
 > cd terraform && terraform plan -input=false
 
 act-plan:
-> act workflow_dispatch -W .github/workflows/plan.yml -P self-hosted=-self-hosted
+> mkdir -p logs
+> act workflow_dispatch -W .github/workflows/plan.yml -P self-hosted=-self-hosted 2>&1 | tee logs/act-plan-$$(date +%Y%m%d-%H%M%S).log
 
 lint:
 > cd terraform && terraform fmt -check -recursive
@@ -51,7 +55,8 @@ lint:
 > actionlint
 
 act-ci:
-> act workflow_dispatch -W .github/workflows/ci.yml -P self-hosted=-self-hosted
+> mkdir -p logs
+> act workflow_dispatch -W .github/workflows/ci.yml -P self-hosted=-self-hosted 2>&1 | tee logs/act-ci-$$(date +%Y%m%d-%H%M%S).log
 
 test-tf:
 > cd terraform && terraform test
