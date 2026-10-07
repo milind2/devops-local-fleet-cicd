@@ -2,7 +2,7 @@
 # terraform test: runs a PLAN in a temporary state; creates nothing, touches no real VM or tfstate.
 
 run "fleet_plan" {
-  command = plan                       # plan only, never apply
+  command = plan # plan only, never apply
 
   assert {
     condition     = multipass_instance.node_a.name == "node-a" && multipass_instance.node_b.name == "node-b"

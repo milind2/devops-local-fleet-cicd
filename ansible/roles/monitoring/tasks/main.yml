@@ -74,26 +74,26 @@
 
 - name: Read the Grafana admin password (file on the host, outside git)
   ansible.builtin.set_fact:
-    grafana_admin_password: "{{ lookup('ansible.builtin.file', lookup('ansible.builtin.env', 'HOME') + '/.config/fleet/grafana_admin_password') }}"
+    monitoring_grafana_admin_password: "{{ lookup('ansible.builtin.file', lookup('ansible.builtin.env', 'HOME') + '/.config/fleet/grafana_admin_password') }}"
   no_log: true
 
 - name: Check whether Grafana already uses that password
   ansible.builtin.uri:
     url: http://127.0.0.1:3000/api/user
     user: admin
-    password: "{{ grafana_admin_password }}"
+    password: "{{ monitoring_grafana_admin_password }}"
     force_basic_auth: true
     status_code: [200, 401]
-  register: grafana_login
-  until: grafana_login.status in [200, 401]
+  register: monitoring_grafana_login
+  until: monitoring_grafana_login.status in [200, 401]
   retries: 30
   delay: 2
   no_log: true
 
 - name: Set the Grafana admin password
   ansible.builtin.command: >-
-    grafana-cli --homepath /usr/share/grafana --config /etc/grafana/grafana.ini
-    admin reset-admin-password {{ grafana_admin_password }}
-  when: grafana_login.status == 401
+    grafana-cli --homepath /usr/share/grafana --config /etc/grafana/grafana.ini --configOverrides cfg:default.paths.data=/var/lib/grafana
+    admin reset-admin-password {{ monitoring_grafana_admin_password }}
+  when: monitoring_grafana_login.status == 401
   changed_when: true
   no_log: true

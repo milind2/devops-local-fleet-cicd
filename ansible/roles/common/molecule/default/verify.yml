@@ -12,13 +12,13 @@
       ansible.builtin.stat:
         path: "{{ item }}"
       loop: [/opt/llama, /opt/llama/releases, /opt/llama/models]
-      register: dirs
+      register: common_dirs
 
     - name: All folders exist
       ansible.builtin.assert:
         that: item.stat.isdir is defined and item.stat.isdir
         fail_msg: "{{ item.item }} is missing"
-      loop: "{{ dirs.results }}"
+      loop: "{{ common_dirs.results }}"
 
     - name: Read installed packages
       ansible.builtin.package_facts:

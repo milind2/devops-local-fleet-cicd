@@ -10,6 +10,7 @@ cloud-init: key
 > printf '#cloud-config\nssh_authorized_keys:\n  - %s\n' "$$(cat ~/.ssh/fleet_key.pub)" > terraform/cloud-init.yaml
 
 apply: cloud-init check-state
+> multipass list > /dev/null
 > cd terraform && terraform init -input=false && terraform apply -auto-approve
 
 configure:
